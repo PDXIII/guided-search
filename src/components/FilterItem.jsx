@@ -2,7 +2,10 @@ import React from "react";
 import PropTypes from "prop-types";
 
 const FilterItem = props =>
-  <div className="filter-item" onClick={props.toggleActive.bind(null, props)}>
+  <div
+    className={`filter-item ${props.className} system-serif b i dib pv2 ph3 ma1 br2 f5 lh-solid shadow-hover`}
+    onClick={props.toggleActive.bind(null, props)}
+  >
     {props.name}
   </div>;
 

@@ -16,6 +16,7 @@
     "eject": "react-scripts eject"
   },
   "devDependencies": {
-    "prop-types": "^15.5.10"
+    "prop-types": "^15.5.10",
+    "tachyons": "^4.8.0"
   }
 }

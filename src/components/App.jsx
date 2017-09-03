@@ -2,6 +2,7 @@ import React, { Component } from "react";
 import _ from "lodash";
 import api from "../utils/api";
 import "./App.css";
+import "tachyons/css/tachyons.css";
 
 import FilterItem from "./FilterItem";
 import ResultItem from "./ResultItem";
@@ -20,21 +21,33 @@ class App extends Component {
     };
 
     this.applyFilters = this.applyFilters.bind(this);
-    this.displayResults = this.displayResults.bind(this);
-    // this.filterResults = this.filterResults.bind(this);
+    this.preventDefault = this.preventDefault.bind(this);
     this.toggleActive = this.toggleActive.bind(this);
     this.updateSearchQuery = this.updateSearchQuery.bind(this);
+    this.resetSearchQuery = this.resetSearchQuery.bind(this);
   }
 
   componentWillMount() {
     api.get.then(results => {
       this.setState({
-        items: results.items,
-        stream: results.items,
-        matches: results.items,
-        filters: results.filters
+        items: this.sortByName(results.items),
+        stream: this.sortByName(results.items),
+        matches: this.sortByName(results.items),
+        filters: this.sortByName(results.filters)
       });
     });
+  }
+
+  preventDefault(event) {
+    event.preventDefault();
+  }
+
+  sortByName(stream) {
+    return _.sortBy(stream, item => item.name);
+  }
+
+  sortByActive(stream) {
+    return _.sortBy(stream, item => !item.isActive);
   }
 
   toggleActive(item) {
@@ -47,12 +60,14 @@ class App extends Component {
     let filtersActive = _.filter(filters, filter => filter.isActive);
 
     this.setState({
-      filters: filters,
-      filtersActive: filtersActive,
-      stream: this.applyFilters(items, filtersActive),
-      matches: this.applyQuery(
-        this.applyFilters(items, filtersActive),
-        this.state.searchQuery
+      filters: this.sortByName(filters),
+      filtersActive: this.sortByName(filtersActive),
+      stream: this.sortByName(this.applyFilters(items, filtersActive)),
+      matches: this.sortByName(
+        this.applyQuery(
+          this.applyFilters(items, filtersActive),
+          this.state.searchQuery
+        )
       )
     });
   }
@@ -66,30 +81,6 @@ class App extends Component {
     }
     return stream;
   }
-
-  displayResults() {
-    return this.state.matches.length > 0
-      ? this.state.matches.map((item, key) =>
-          <ResultItem item={item} key={key} />
-        )
-      : this.state.items.map((item, key) =>
-          <ResultItem item={item} key={key} />
-        );
-  }
-
-  // filterResults() {
-  //   console.log(this.state.searchQuery);
-  //   let stream = this.applyFilters(this.state.items, this.state.filtersActive);
-  //   let matches = this.applyQuery(
-  //     this.applyFilters(this.state.items, this.state.filtersActive),
-  //     this.state.searchQuery
-  //   );
-  //   console.log(matches.length);
-  //   return this.setState({
-  //     stream: stream,
-  //     matches: matches
-  //   });
-  // }
 
   applyQuery(stream, searchQuery) {
     console.log(searchQuery);
@@ -105,13 +96,23 @@ class App extends Component {
 
     this.setState({
       searchQuery: searchQuery,
-      matches: this.applyQuery(stream, searchQuery)
+      matches: this.sortByName(this.applyQuery(stream, searchQuery))
+    });
+  }
+
+  resetSearchQuery() {
+    let searchQuery = "";
+    let stream = this.state.stream;
+
+    this.setState({
+      searchQuery: searchQuery,
+      matches: this.sortByName(this.applyQuery(stream, searchQuery))
     });
   }
 
   render() {
     return (
-      <div className="App">
+      <div className="App system-sans black-50">
         <div className="App-header">
           <h2>Guided Search</h2>
         </div>
@@ -119,36 +120,36 @@ class App extends Component {
           <div className="filters-ui">
             <div className="live-search">
               <h2>live search</h2>
-              <input
-                className="search-field"
-                placeholder="enter search query"
-                type="text"
-                onChange={this.updateSearchQuery}
-              />
-              <p className="query-outlet">
-                {this.state.searchQuery}
-              </p>
+              <form
+                className="search-form br2 pa3 dib f3 lh-solid shadow-hover"
+                action={this.preventDefault}
+              >
+                <input
+                  className="search-field bn tc system-serif b i"
+                  placeholder="enter search query"
+                  type="text"
+                  onChange={this.updateSearchQuery}
+                />
+                <input
+                  className="reset-btn bn bg-transparent black-30 grow"
+                  type="reset"
+                  value="×"
+                  onClick={this.resetSearchQuery}
+                />
+              </form>
             </div>
-
             <div className="filters">
-              <h2>available filters</h2>
+              <h2>filters</h2>
               {this.state.filters.map((item, key) =>
                 <FilterItem
                   id={item.id}
                   name={item.name}
+                  className={
+                    item.isActive || this.state.filtersActive.length === 0
+                      ? "black-70"
+                      : "black-30"
+                  }
                   isActive={true}
-                  toggleActive={this.toggleActive}
-                  key={key}
-                />
-              )}
-            </div>
-            <div className="active-filters">
-              <h2>active filters</h2>
-              {this.state.filtersActive.map((item, key) =>
-                <FilterItem
-                  id={item.id}
-                  name={item.name}
-                  isActive={false}
                   toggleActive={this.toggleActive}
                   key={key}
                 />
@@ -157,8 +158,7 @@ class App extends Component {
           </div>
           <div className="results-outlet">
             <h2>search results</h2>
-            {// {this.displayResults()}
-            this.state.matches.map((item, key) =>
+            {this.state.matches.map((item, key) =>
               <ResultItem item={item} key={key} />
             )}
           </div>
