@@ -14,90 +14,98 @@ class App extends Component {
       filters: [],
       filtersActive: [],
       items: [],
+      stream: [],
       matches: [],
       searchQuery: ""
     };
 
-    this.addFilter = this.addFilter.bind(this);
     this.applyFilters = this.applyFilters.bind(this);
     this.displayResults = this.displayResults.bind(this);
-    this.filterResults = this.filterResults.bind(this);
-    this.removeFilter = this.removeFilter.bind(this);
+    // this.filterResults = this.filterResults.bind(this);
+    this.toggleActive = this.toggleActive.bind(this);
+    this.updateSearchQuery = this.updateSearchQuery.bind(this);
   }
 
   componentWillMount() {
     api.get.then(results => {
       this.setState({
         items: results.items,
+        stream: results.items,
+        matches: results.items,
         filters: results.filters
       });
     });
   }
 
-  addFilter(item) {
-    let filtersActive = this.state.filtersActive;
-    filtersActive.push(item);
+  toggleActive(item) {
+    let filters = this.state.filters;
+    let items = this.state.items;
+
+    let currentFilter = _.find(filters, filter => filter.id === item.id);
+    currentFilter.isActive = !currentFilter.isActive;
+
+    let filtersActive = _.filter(filters, filter => filter.isActive);
 
     this.setState({
-      filtersActive: _.uniqBy(filtersActive, "name")
+      filters: filters,
+      filtersActive: filtersActive,
+      stream: this.applyFilters(items, filtersActive),
+      matches: this.applyQuery(
+        this.applyFilters(items, filtersActive),
+        this.state.searchQuery
+      )
     });
-
-    this.applyFilters();
   }
 
-  removeFilter(item) {
-    let filtersActive = this.state.filtersActive;
-
-    let itemIndex = _.findIndex(filtersActive, function(o) {
-      return o.name === item.name;
-    });
-    console.log(filtersActive);
-    console.log(itemIndex);
-    filtersActive.splice(itemIndex, 1);
-    this.setState({
-      filtersActive: _.uniqBy(filtersActive, "name")
-    });
-
-    this.applyFilters();
-  }
-
-  toggleActive(item) {}
-
-  applyFilters() {
-    let results = this.state.items;
-
-    let matches = this.state.filtersActive.map(filter =>
-      results.filter(result => result.type === filter.name)
-    );
-
-    this.setState({
-      matches: _.flatten(matches)
-    });
+  applyFilters(stream, filters) {
+    if (filters.length > 0) {
+      stream = filters.map(filter =>
+        stream.filter(item => item.type === filter.name)
+      );
+      return _.flatten(stream);
+    }
+    return stream;
   }
 
   displayResults() {
-    if (this.state.matches.length > 0 || this.state.searchQuery.length > 0) {
-      return this.state.matches.map((item, key) =>
-        <ResultItem item={item} key={key} />
-      );
-    }
-    return this.state.items.map((item, key) =>
-      <ResultItem item={item} key={key} />
-    );
+    return this.state.matches.length > 0
+      ? this.state.matches.map((item, key) =>
+          <ResultItem item={item} key={key} />
+        )
+      : this.state.items.map((item, key) =>
+          <ResultItem item={item} key={key} />
+        );
   }
 
-  filterResults(event) {
+  // filterResults() {
+  //   console.log(this.state.searchQuery);
+  //   let stream = this.applyFilters(this.state.items, this.state.filtersActive);
+  //   let matches = this.applyQuery(
+  //     this.applyFilters(this.state.items, this.state.filtersActive),
+  //     this.state.searchQuery
+  //   );
+  //   console.log(matches.length);
+  //   return this.setState({
+  //     stream: stream,
+  //     matches: matches
+  //   });
+  // }
+
+  applyQuery(stream, searchQuery) {
+    console.log(searchQuery);
+    if (searchQuery.length > 0) {
+      return _.filter(stream, item => _.includes(item.name, searchQuery));
+    }
+    return stream;
+  }
+
+  updateSearchQuery(event) {
     let searchQuery = event.target.value;
-
-    let matches = this.state.matches.filter(item =>
-      item.name.includes(searchQuery)
-    );
-
-    console.log(matches);
+    let stream = this.state.stream;
 
     this.setState({
       searchQuery: searchQuery,
-      matches: _.uniqBy(matches, "id")
+      matches: this.applyQuery(stream, searchQuery)
     });
   }
 
@@ -115,12 +123,13 @@ class App extends Component {
                 className="search-field"
                 placeholder="enter search query"
                 type="text"
-                onChange={this.filterResults}
+                onChange={this.updateSearchQuery}
               />
               <p className="query-outlet">
                 {this.state.searchQuery}
               </p>
             </div>
+
             <div className="filters">
               <h2>available filters</h2>
               {this.state.filters.map((item, key) =>
@@ -128,7 +137,7 @@ class App extends Component {
                   id={item.id}
                   name={item.name}
                   isActive={true}
-                  toggleActive={this.addFilter}
+                  toggleActive={this.toggleActive}
                   key={key}
                 />
               )}
@@ -140,7 +149,7 @@ class App extends Component {
                   id={item.id}
                   name={item.name}
                   isActive={false}
-                  toggleActive={this.removeFilter}
+                  toggleActive={this.toggleActive}
                   key={key}
                 />
               )}
@@ -148,7 +157,10 @@ class App extends Component {
           </div>
           <div className="results-outlet">
             <h2>search results</h2>
-            {this.displayResults()}
+            {// {this.displayResults()}
+            this.state.matches.map((item, key) =>
+              <ResultItem item={item} key={key} />
+            )}
           </div>
         </main>
       </div>
