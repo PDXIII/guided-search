@@ -43,7 +43,7 @@ class App extends Component {
   }
 
   sortByName(stream) {
-    return _.sortBy(stream, item => item.name);
+    return _.sortBy(stream, item => _.lowerCase(item.name));
   }
 
   sortByActive(stream) {
@@ -83,7 +83,6 @@ class App extends Component {
   }
 
   applyQuery(stream, searchQuery) {
-    console.log(searchQuery);
     if (searchQuery.length > 0) {
       return _.filter(stream, item => _.includes(item.name, searchQuery));
     }
@@ -112,55 +111,62 @@ class App extends Component {
 
   render() {
     return (
-      <div className="App system-sans black-50">
+      <div className="App system-serif black-50 tc">
         <div className="App-header">
-          <h2>Guided Search</h2>
+          <h1 className="f1 pa4 ma0 normal i tl ">Guided Search</h1>
         </div>
         <main>
           <div className="filters-ui">
-            <div className="live-search">
-              <h2>live search</h2>
+            <div className="live-search pa2">
               <form
-                className="search-form br2 pa3 dib f3 lh-solid shadow-hover"
+                className="search-form br2 pv3 ph5 dib f3 lh-solid shadow-hover relative w-50"
                 action={this.preventDefault}
               >
                 <input
-                  className="search-field bn tc system-serif b i"
-                  placeholder="enter search query"
+                  className="search-field bn tc system-serif w-100 relative dib b i"
+                  placeholder="What are you looking for? "
                   type="text"
                   onChange={this.updateSearchQuery}
                 />
                 <input
-                  className="reset-btn bn bg-transparent black-30 grow"
+                  className="reset-btn bn bg-transparent black-30 grow right-1 absolute"
                   type="reset"
                   value="×"
                   onClick={this.resetSearchQuery}
                 />
               </form>
             </div>
-            <div className="filters">
-              <h2>filters</h2>
-              {this.state.filters.map((item, key) =>
-                <FilterItem
-                  id={item.id}
-                  name={item.name}
-                  className={
-                    item.isActive || this.state.filtersActive.length === 0
-                      ? "black-70"
-                      : "black-30"
-                  }
-                  isActive={true}
-                  toggleActive={this.toggleActive}
-                  key={key}
-                />
-              )}
+            <div className="filters pa1">
+              <div className="filter-container w-60 center relative">
+                {this.state.filters.map((item, key) =>
+                  <FilterItem
+                    id={item.id}
+                    name={item.name}
+                    className={
+                      item.isActive || this.state.filtersActive.length === 0
+                        ? "black-70"
+                        : "black-30"
+                    }
+                    isActive={true}
+                    toggleActive={this.toggleActive}
+                    key={key}
+                  />
+                )}
+              </div>
             </div>
           </div>
-          <div className="results-outlet">
-            <h2>search results</h2>
-            {this.state.matches.map((item, key) =>
-              <ResultItem item={item} key={key} />
-            )}
+          <div className="results-outlet relative overflow-hidden">
+            <h2 className="b i f4">
+              {this.state.items.length === this.state.matches.length
+                ? `${this.state.matches.length} results`
+                : `${this.state.matches.length} of ${this.state.items
+                    .length} results`}
+            </h2>
+            <div className="results-container w-80 center">
+              {this.state.matches.map((item, key) =>
+                <ResultItem item={item} key={key} />
+              )}
+            </div>
           </div>
         </main>
       </div>

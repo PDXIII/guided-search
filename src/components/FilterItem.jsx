@@ -3,7 +3,7 @@ import PropTypes from "prop-types";
 
 const FilterItem = props =>
   <div
-    className={`filter-item ${props.className} system-serif b i dib pv2 ph3 ma1 br2 f5 lh-solid shadow-hover`}
+    className={`filter-item ${props.className} b i dib pv2 ph3 ma1 br2 f5 lh-solid shadow-hover`}
     onClick={props.toggleActive.bind(null, props)}
   >
     {props.name}
