@@ -57,3 +57,6 @@ typings/
 # dotenv environment variables file
 .env
 
+# keep your build local
+build/
+dist/
