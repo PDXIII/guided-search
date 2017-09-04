@@ -3,7 +3,7 @@ import _ from "lodash";
 
 // const url = "http://beta.json-generator.com/api/json/get/4kUm-4IdX";
 const url =
-  "http://json-gen.com/rest/service/get/zaQTj6OQdXMN0YuxqocVVJ8R8k2Gf";
+  "https://raw.githubusercontent.com/PDXIII/guided-search/master/public/data/data.json";
 
 var sortData = response => ({
   items: response.data,
