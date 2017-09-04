@@ -113,7 +113,7 @@ class App extends Component {
     return (
       <div className="App system-serif black-50 tc">
         <div className="App-header">
-          <h1 className="f1 pa4 ma0 normal i tl ">Guided Search</h1>
+          <h1 className="f1 pa4 ma0 normal i b tl ">Guided Search</h1>
         </div>
         <main>
           <div className="filters-ui">
